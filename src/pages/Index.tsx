@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,8 +38,7 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call - replace with actual webhook URL
-      const response = await fetch('https://your-webhook-url.com/generate-post', {
+      const response = await fetch('https://simranshaikh20.app.n8n.cloud/webhook-test/brandme-input', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,14 +61,12 @@ const Index = () => {
         throw new Error('Failed to submit');
       }
     } catch (error) {
-      // For demo purposes, we'll show success after a delay
-      setTimeout(() => {
-        setIsSuccess(true);
-        toast({
-          title: "Success!",
-          description: "Your post is being crafted and will be emailed shortly!",
-        });
-      }, 2000);
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: "There was an issue submitting your request. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
