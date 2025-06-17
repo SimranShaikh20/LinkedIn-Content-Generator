@@ -6,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Copy, CheckCircle } from 'lucide-react';
+import { Loader2, Copy, CheckCircle, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FormData {
   name: string;
-  email: string;
   category: string;
   topic: string;
 }
@@ -19,13 +18,15 @@ interface FormData {
 const Index = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
-    email: '',
     category: '',
     topic: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [generatedPost, setGeneratedPost] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [rating, setRating] = useState(0);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -48,15 +49,16 @@ const Index = () => {
         },
         body: JSON.stringify({
           name: formData.name,
-          email: formData.email,
           category: formData.category,
           topic: formData.topic
         })
       });
 
       if (response.ok) {
-        const data = await response.text();
-        setGeneratedPost(data);
+        const data = await response.json();
+        // Extract the generated post from the response
+        const postText = data.generated_post || data.message || data;
+        setGeneratedPost(postText);
         toast({
           title: "Success!",
           description: "Your LinkedIn post has been generated!",
@@ -97,15 +99,31 @@ const Index = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      email: '',
       category: '',
       topic: ''
     });
     setGeneratedPost('');
   };
 
+  const handleFeedbackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating > 0) {
+      setFeedbackSubmitted(true);
+      toast({
+        title: "Thank you!",
+        description: "Your feedback has been submitted successfully.",
+      });
+    } else {
+      toast({
+        title: "Please provide a rating",
+        description: "Please rate your experience before submitting.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
@@ -128,36 +146,19 @@ const Index = () => {
             
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-slate-700 font-medium">
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="John Doe"
-                      required
-                      className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-800"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-700 font-medium">
-                      Email Address *
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="john@company.com"
-                      required
-                      className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-800"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-slate-700 font-medium">
+                    Full Name *
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="John Doe"
+                    required
+                    className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-800"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -199,7 +200,7 @@ const Index = () => {
 
                 <Button
                   type="submit"
-                  disabled={isLoading || !formData.name || !formData.email || !formData.category || !formData.topic}
+                  disabled={isLoading || !formData.name || !formData.category || !formData.topic}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 text-lg transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100"
                 >
                   {isLoading ? (
@@ -231,9 +232,9 @@ const Index = () => {
               {generatedPost ? (
                 <div className="space-y-4">
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 min-h-[300px]">
-                    <pre className="whitespace-pre-wrap font-sans text-slate-800 leading-relaxed">
+                    <div className="whitespace-pre-wrap font-sans text-slate-800 leading-relaxed select-text">
                       {generatedPost}
-                    </pre>
+                    </div>
                   </div>
                   
                   <div className="flex gap-3">
@@ -278,6 +279,71 @@ const Index = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* User Feedback Section */}
+        <Card className="mt-8 shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-t-lg">
+            <CardTitle className="text-xl font-bold">Share Your Experience</CardTitle>
+            <CardDescription className="text-purple-100">
+              Help us improve LinkedPost AI with your feedback
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="p-6">
+            {!feedbackSubmitted ? (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-medium">Rate your experience *</Label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className={`p-1 rounded hover:scale-110 transition-transform ${
+                          star <= rating ? 'text-yellow-500' : 'text-gray-300'
+                        }`}
+                      >
+                        <Star className="h-6 w-6 fill-current" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="feedback" className="text-slate-700 font-medium">
+                    Additional Comments (Optional)
+                  </Label>
+                  <Textarea
+                    id="feedback"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Tell us what you loved or how we can improve..."
+                    className="border-slate-300 focus:border-purple-500 focus:ring-purple-500 text-slate-800 min-h-20 resize-none"
+                    rows={3}
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-2 px-6"
+                >
+                  Submit Feedback
+                </Button>
+              </form>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">
+                  Thank you for your feedback!
+                </h3>
+                <p className="text-slate-500">
+                  Your input helps us make LinkedPost AI better for everyone.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="text-center mt-6 text-slate-500 text-sm">
           Powered by AI • Your data is secure and never stored
