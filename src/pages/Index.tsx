@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -283,7 +282,9 @@ const Index = () => {
         {/* User Feedback Section */}
         <Card className="mt-8 shadow-xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-t-lg">
-            <CardTitle className="text-xl font-bold">Share Your Experience</CardTitle>
+            <CardTitle className="text-xl font-bold">
+              {formData.name ? `Share Your Experience, ${formData.name}!` : 'Share Your Experience'}
+            </CardTitle>
             <CardDescription className="text-purple-100">
               Help us improve LinkedPost AI with your feedback
             </CardDescription>
@@ -335,7 +336,7 @@ const Index = () => {
               <div className="text-center py-8">
                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                  Thank you for your feedback!
+                  {formData.name ? `Thank you for your feedback, ${formData.name}!` : 'Thank you for your feedback!'}
                 </h3>
                 <p className="text-slate-500">
                   Your input helps us make LinkedPost AI better for everyone.
