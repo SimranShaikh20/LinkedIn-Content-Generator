@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FormData {
@@ -23,7 +24,8 @@ const Index = () => {
     topic: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [generatedPost, setGeneratedPost] = useState<string>('');
+  const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -36,6 +38,7 @@ const Index = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setGeneratedPost('');
 
     try {
       const response = await fetch('https://simranshaikh20.app.n8n.cloud/webhook-test/brandme-input', {
@@ -52,23 +55,42 @@ const Index = () => {
       });
 
       if (response.ok) {
-        setIsSuccess(true);
+        const data = await response.text();
+        setGeneratedPost(data);
         toast({
           title: "Success!",
-          description: "Your post is being crafted and will be emailed shortly!",
+          description: "Your LinkedIn post has been generated!",
         });
       } else {
-        throw new Error('Failed to submit');
+        throw new Error('Failed to generate post');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
         title: "Error",
-        description: "There was an issue submitting your request. Please try again.",
+        description: "There was an issue generating your post. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedPost);
+      setIsCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Post copied to clipboard",
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
@@ -79,12 +101,12 @@ const Index = () => {
       category: '',
       topic: ''
     });
-    setIsSuccess(false);
+    setGeneratedPost('');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
             ✍️ Generate LinkedIn Posts in Seconds
@@ -94,32 +116,17 @@ const Index = () => {
           </p>
         </div>
 
-        <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
-            <CardTitle className="text-2xl font-bold">LinkedPost AI</CardTitle>
-            <CardDescription className="text-blue-100">
-              Create engaging LinkedIn content tailored to your professional voice
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="p-8">
-            {isSuccess ? (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">🎉</div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">
-                  Your post is being crafted!
-                </h3>
-                <p className="text-slate-600 mb-6 text-lg">
-                  Your LinkedIn content will be emailed to you shortly.
-                </p>
-                <Button 
-                  onClick={resetForm}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-                >
-                  Create Another Post
-                </Button>
-              </div>
-            ) : (
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+            <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+              <CardTitle className="text-2xl font-bold">LinkedPost AI</CardTitle>
+              <CardDescription className="text-blue-100">
+                Create engaging LinkedIn content tailored to your professional voice
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -198,16 +205,79 @@ const Index = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Crafting Your Post...
+                      Generating Your Post...
                     </>
                   ) : (
                     'Generate LinkedIn Post ✨'
                   )}
                 </Button>
               </form>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Generated Post Section */}
+          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <CheckCircle className="h-6 w-6" />
+                Generated LinkedIn Post
+              </CardTitle>
+              <CardDescription className="text-green-100">
+                Your AI-crafted professional content is ready!
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-8">
+              {generatedPost ? (
+                <div className="space-y-4">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 min-h-[300px]">
+                    <pre className="whitespace-pre-wrap font-sans text-slate-800 leading-relaxed">
+                      {generatedPost}
+                    </pre>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={copyToClipboard}
+                      variant="outline"
+                      className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+                    >
+                      {isCopied ? (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Post
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      onClick={resetForm}
+                      variant="outline"
+                      className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50"
+                    >
+                      Create Another Post
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">📝</div>
+                  <h3 className="text-xl font-semibold text-slate-700 mb-2">
+                    Ready to Generate
+                  </h3>
+                  <p className="text-slate-500">
+                    Fill out the form and click generate to see your LinkedIn post here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="text-center mt-6 text-slate-500 text-sm">
           Powered by AI • Your data is secure and never stored
