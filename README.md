@@ -60,7 +60,7 @@
 ### 1. Clone the Project
 
 ```bash
-git clone https://github.com/yourusername/linkedin-content-generator.git
+git clone https://github.com/SimranShaikh20/linkedin-content-generator.git
 cd linkedin-content-generator
 npm install
 ```
