@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +42,7 @@ const Index = () => {
     setGeneratedPost('');
 
     try {
-      const response = await fetch('https://simranshaikh20.app.n8n.cloud/webhook-test/brandme-input', {
+      const response = await fetch('https://simranshaikh20.app.n8n.cloud/webhook/brandme-input', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
