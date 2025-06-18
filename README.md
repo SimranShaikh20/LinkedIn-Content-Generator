@@ -24,7 +24,8 @@
 
 👉 **Try it now**: [App Link ](https://linkedpost-ai-craft.lovable.app/)
 
-![Demo Screenshot](https://your-image-url.com/demo.gif)
+![Screenshot](Post1.png)
+![Screenshot](Post2.png)
 
 ---
 
