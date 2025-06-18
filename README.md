@@ -31,7 +31,7 @@
 ## 🧠 How It Works
 
 1. **Fill the Form**  
-   User enters name, email, selects a category, and types a topic.
+   User enters name, selects a category, and types a topic.
 
 2. **Send to Backend (n8n)**  
    Data is sent to an n8n workflow using a Production Webhook.
