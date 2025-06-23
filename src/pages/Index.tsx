@@ -42,7 +42,7 @@ const Index = () => {
     setGeneratedPost('');
 
     try {
-      const response = await fetch('https://simranshaikh20.app.n8n.cloud/webhook/brandme-input', {
+      const response = await fetch('https://simranshaikh.app.n8n.cloud/webhook/brandme-input', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
