@@ -6,13 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Copy, CheckCircle, Star } from 'lucide-react';
+import { Loader2, Copy, CheckCircle, Star, Clock, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FormData {
   name: string;
   category: string;
   topic: string;
+}
+
+interface FeedbackEntry {
+  id: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  timestamp: Date;
 }
 
 const Index = () => {
@@ -27,6 +35,7 @@ const Index = () => {
   const [feedback, setFeedback] = useState('');
   const [rating, setRating] = useState(0);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([]);
   const { toast } = useToast();
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -108,7 +117,19 @@ const Index = () => {
   const handleFeedbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (rating > 0) {
+      const newFeedback: FeedbackEntry = {
+        id: Date.now().toString(),
+        userName: formData.name || 'Anonymous',
+        rating,
+        comment: feedback,
+        timestamp: new Date()
+      };
+      
+      setFeedbackEntries(prev => [newFeedback, ...prev]);
       setFeedbackSubmitted(true);
+      setFeedback('');
+      setRating(0);
+      
       toast({
         title: "Thank you!",
         description: "Your feedback has been submitted successfully.",
@@ -120,6 +141,16 @@ const Index = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -339,13 +370,77 @@ const Index = () => {
                 <h3 className="text-lg font-semibold text-slate-700 mb-2">
                   {formData.name ? `Thank you for your feedback, ${formData.name}!` : 'Thank you for your feedback!'}
                 </h3>
-                <p className="text-slate-500">
+                <p className="text-slate-500 mb-4">
                   Your input helps us make LinkedPost AI better for everyone.
                 </p>
+                <Button
+                  onClick={() => setFeedbackSubmitted(false)}
+                  variant="outline"
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  Leave Another Review
+                </Button>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* User Reviews Display Section */}
+        {feedbackEntries.length > 0 && (
+          <Card className="mt-8 shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-t-lg">
+              <CardTitle className="text-xl font-bold flex items-center gap-2">
+                <Star className="h-6 w-6 fill-current" />
+                User Reviews ({feedbackEntries.length})
+              </CardTitle>
+              <CardDescription className="text-emerald-100">
+                See what our users are saying about LinkedPost AI
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-6">
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {feedbackEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <User className="h-5 w-5 text-slate-600" />
+                        <span className="font-semibold text-slate-800">{entry.userName}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-slate-500">
+                        <Clock className="h-4 w-4" />
+                        {formatDate(entry.timestamp)}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 fill-current ${
+                            star <= entry.rating ? 'text-yellow-500' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-sm font-medium text-slate-600">
+                        {entry.rating}/5
+                      </span>
+                    </div>
+                    
+                    {entry.comment && (
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        "{entry.comment}"
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="text-center mt-6 text-slate-500 text-sm">
           Powered by AI • Your data is secure and never stored
